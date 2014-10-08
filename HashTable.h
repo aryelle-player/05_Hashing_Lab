@@ -92,17 +92,17 @@ HashTable<Key, T>::HashTable(){
 
 template <class Key, class T>
 HashTable<Key, T>::~HashTable() {
-	//TODO
+	delete[] backingArray;
 }
 
 template <class Key, class T>
 unsigned long HashTable<Key, T>::calcIndex(Key k){
-	for (int i = 0; i <backingArraySize; i++){
+	for (int i = 0; i < backingArraySize; i++){
 		if(backingArray[i] == hash(k)){
 			return backingArray[i];
 		}else{
-			if(backingArray[i].isNull == true && backingArray[i].isDel == true){
-			return  hash(k)%backingArraySize;
+			if(backingArray[i].isNull == true || backingArray[i].isDel == true){
+			return hash(k)%backingArraySize;
 			}
 		}
 	}
@@ -110,45 +110,67 @@ unsigned long HashTable<Key, T>::calcIndex(Key k){
 
 template <class Key, class T>
 void HashTable<Key, T>::add(Key k, T x){
-/*	for(int i = 0; i < backingArraySize; i++){
-		if(hash(k) == NULL){
-			
-		}
-	}*/
+	if (keyExists(k) == true){
+		backingArray[calcIndex(k)] = x;
+	}
+	if (2 * (numItems) > backingArraySize){
+		grow();
+	}
+	else{
+		backingArray[calcIndex(k)] = new HashRecord(k, x);
+		numItems++;
+	}
+
 }
 
 template <class Key, class T>
 void HashTable<Key, T>::remove(Key k){
-	//TODO
+	if (keyExists(k) == true){
+		backingArray(calcIndex(k)).isNull = false;
+		backingArray(calcIndex(k)).isDel = true;
+	}
+	numItems--;
 }
 
 template <class Key, class T>
 T HashTable<Key, T>::find(Key k){
 	T dummy;
-	for (int i = 0; i < backingArraySize; i++){
-		if(backingArray[i] == hash(k)){
+	int i = hash(k);
+	while (backingArray[i] != null){//.isNull == false){
+		if (backingArray[i] == k){
 			dummy = backingArray[i];
+			return dummy;
 		}
+			i++;
 	}
-	return dummy;
+	return null;
 }
 
 template <class Key, class T>
 bool HashTable<Key, T>::keyExists(Key k){
-	if(find(k) == dummy){
+	if(find(k) == null){
 		return false;
-	}else{
-		return true};
+	}
+		return true;
 }	
 
 template <class Key, class T>
 unsigned long HashTable<Key, T>::size(){
-	//TODO
-	return 0;
+	unsigned int size = 0;
+	for (unsigned int i = 0; i < backingArraySize; i++){
+		if (backingArray[i].isNull == false){
+			size++;
+		}
+	}
+	return size;
 }
 
 template <class Key, class T>
 void HashTable<Key, T>::grow(){
-	//TODO
+	array<T, 2 * backingArraySize> dummy;
+	for (int i = 0; i < 2 * backingArraySize; i++){
+		dummy[2*i].add(backingArray[i]);
+	}
+	backingArray = dummy;
 }
 

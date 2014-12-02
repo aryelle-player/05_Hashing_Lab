@@ -84,10 +84,10 @@ public:
 
 template <class Key, class T>
 HashTable<Key, T>::HashTable(){
-  array<T> backingArray;
-  unsigned long numItems;
-  unsigned long numRemoved; 
-  unsigned long backingArraySize;
+	backingArray = new [10];
+	numItems = 0;
+	numRemoved = 0; 
+	backingArraySize = 10;
 }
 
 template <class Key, class T>
@@ -97,12 +97,13 @@ HashTable<Key, T>::~HashTable() {
 
 template <class Key, class T>
 unsigned long HashTable<Key, T>::calcIndex(Key k){
-	for (int i = 0; i < backingArraySize; i++){
-		if(backingArray[i] == hash(k)){
-			return backingArray[i];
+	unsigned long i = hash(k);
+	while(i <= backingArraySize){
+		if(backingArray[i].k == hash(k)){
+			return i;
 		}else{
 			if(backingArray[i].isNull == true || backingArray[i].isDel == true){
-			return hash(k)%backingArraySize;
+				return hash(k)%backingArraySize;
 			}
 		}
 	}
@@ -110,38 +111,41 @@ unsigned long HashTable<Key, T>::calcIndex(Key k){
 
 template <class Key, class T>
 void HashTable<Key, T>::add(Key k, T x){
-	if (keyExists(k) == true){
+	if (keyExists(k)){
 		backingArray[calcIndex(k)] = x;
 	}
 	if (2 * (numItems) > backingArraySize){
 		grow();
 	}
-	else{
-		backingArray[calcIndex(k)] = new HashRecord(k, x);
-		numItems++;
-	}
+
+	backingArray[calcIndex(k)].k = k;
+	backingArray[calcIndex(k)].x = x;
+	backingArray[calcIndex(k)].isDel = false;
+	backingArray[calcIndex(k)].isNull = false;
+	numItems++;
 
 }
 
 template <class Key, class T>
 void HashTable<Key, T>::remove(Key k){
 	if (keyExists(k) == true){
-		backingArray(calcIndex(k)).isNull = false;
-		backingArray(calcIndex(k)).isDel = true;
+		backingArray[calcIndex(k)].isNull = false;
+		backingArray[calcIndex(k)].isDel = true;
+		numItems--;
 	}
-	numItems--;
+	numRemoved++;
 }
 
 template <class Key, class T>
 T HashTable<Key, T>::find(Key k){
 	T dummy;
 	int i = hash(k);
-	while (backingArray[i] != null){//.isNull == false){
-		if (backingArray[i] == k){
+	while (backingArray[i].isNull == false){
+		if (backingArray[i].k == k){
 			dummy = backingArray[i];
 			return dummy;
 		}
-			i++;
+		i++;
 	}
 	return null;
 }
@@ -151,7 +155,7 @@ bool HashTable<Key, T>::keyExists(Key k){
 	if(find(k) == null){
 		return false;
 	}
-		return true;
+	return true;
 }	
 
 template <class Key, class T>

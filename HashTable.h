@@ -72,11 +72,13 @@ private:
 	unsigned long numItems; //Number of items in the hash table
 
 	//Note: Ordinarily, these OUGHT to be private. In this case I have
-	// made them public for easy of testing.
+	// made them public for ease of testing.
 public:
 	unsigned long numRemoved; //Number of slots that have been removed but not re-used. Those that have isDel == true
 	unsigned long backingArraySize;
 };
+
+
 
 //You will need this so you can make a string to throw in
 // remove
@@ -84,10 +86,10 @@ public:
 
 template <class Key, class T>
 HashTable<Key, T>::HashTable(){
-  array<T> backingArray;
-  unsigned long numItems;
-  unsigned long numRemoved; 
-  unsigned long backingArraySize;
+	backingArray = new HashRecord;
+	numItems = 0;
+	numRemoved = 0;
+	backingArraySize = 0;
 }
 
 template <class Key, class T>
@@ -97,80 +99,89 @@ HashTable<Key, T>::~HashTable() {
 
 template <class Key, class T>
 unsigned long HashTable<Key, T>::calcIndex(Key k){
-	for (int i = 0; i < backingArraySize; i++){
-		if(backingArray[i] == hash(k)){
-			return backingArray[i];
-		}else{
-			if(backingArray[i].isNull == true || backingArray[i].isDel == true){
-			return hash(k)%backingArraySize;
-			}
+	if (!backingArray[hash(k)].isDel && backingArray[hash(k)].k == k){
+		return hash(k);
+	}
+	else{
+		if (!backingArray[hash(k)].isNull || backingArray[hash(k)].isDel){
+			return hash(k) % backingArraySize;
 		}
 	}
 }
 
 template <class Key, class T>
 void HashTable<Key, T>::add(Key k, T x){
-	if (keyExists(k) == true){
-		backingArray[calcIndex(k)] = x;
-	}
-	if (2 * (numItems) > backingArraySize){
-		grow();
+	if (keyExists(k)){
+		backingArray[calcIndex(k)].x = x;
 	}
 	else{
-		backingArray[calcIndex(k)] = new HashRecord(k, x);
-		numItems++;
-	}
+		int index = calcIndex(k);
 
+		if ((numRemoved + numItems) >= backingArraySize){
+			grow();
+		}
+		if (backingArray[index].isNull){
+			numItems++;
+		}
+		if (backingArray[index].isDel){
+			numRemoved--;
+		}
+		backingArray[index].k = k;
+		backingArray[index].x = x;
+		backingArray[index].isNull = false;
+		backingArray[index].isDel = false;
+	}
 }
 
 template <class Key, class T>
 void HashTable<Key, T>::remove(Key k){
-	if (keyExists(k) == true){
-		backingArray(calcIndex(k)).isNull = false;
-		backingArray(calcIndex(k)).isDel = true;
+	if (!keyExists(k)){
+		throw std::string("Nothing to remove");
 	}
+	backingArray[calcIndex(k)].isDel = true;
 	numItems--;
+	numRemoved++;
 }
 
 template <class Key, class T>
 T HashTable<Key, T>::find(Key k){
-	T dummy;
-	int i = hash(k);
-	while (backingArray[i] != null){//.isNull == false){
-		if (backingArray[i] == k){
-			dummy = backingArray[i];
-			return dummy;
-		}
-			i++;
+	if (!keyExists(k)){
+		throw std::string("Key does not exist");
 	}
-	return null;
+
+	return backingArray[calcIndex(k)].x;
 }
 
 template <class Key, class T>
 bool HashTable<Key, T>::keyExists(Key k){
-	if(find(k) == null){
+	if (calcIndex(k) >= numItems){
 		return false;
 	}
-		return true;
-}	
+	return true;
+}
 
 template <class Key, class T>
 unsigned long HashTable<Key, T>::size(){
-	unsigned int size = 0;
-	for (unsigned int i = 0; i < backingArraySize; i++){
-		if (backingArray[i].isNull == false){
-			size++;
-		}
-	}
-	return size;
+	return numItems;
 }
 
 template <class Key, class T>
 void HashTable<Key, T>::grow(){
-	array<T, 2 * backingArraySize> dummy;
-	for (int i = 0; i < 2 * backingArraySize; i++){
-		dummy[2*i].add(backingArray[i]);
+	backingArraySize *= 2;
+	HashRecord* dummy = new HashRecord[backingArraySize];
+
+	for (unsigned int i = 0; i < backingArraySize; i++){
+		if (!backingArray[i].isDel && !backingArray[i].isNull){
+			int index = hash(backingArray[i].k) % backingArraySize;
+			while (!dummy[index].isNull) {
+				index += 1 % backingArraySize;
+			}
+			dummy[index].isNull = false;
+			dummy[index].isDel = false;
+			dummy[index].k = backingArray[i].k;
+			dummy[index].x = backingArray[i].x;
+		}
 	}
-	backingArray = dummy;
+
 }
 

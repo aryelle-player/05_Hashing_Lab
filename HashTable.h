@@ -86,10 +86,17 @@ public:
 
 template <class Key, class T>
 HashTable<Key, T>::HashTable(){
+<<<<<<< HEAD
 	backingArray = new HashRecord;
 	numItems = 0;
 	numRemoved = 0;
 	backingArraySize = 0;
+=======
+	backingArray = new [10];
+	numItems = 0;
+	numRemoved = 0; 
+	backingArraySize = 10;
+>>>>>>> 66a10142f5c61d19b1f0403aca0918d1bd7c13f9
 }
 
 template <class Key, class T>
@@ -99,12 +106,23 @@ HashTable<Key, T>::~HashTable() {
 
 template <class Key, class T>
 unsigned long HashTable<Key, T>::calcIndex(Key k){
+<<<<<<< HEAD
 	if (!backingArray[hash(k)].isDel && backingArray[hash(k)].k == k){
 		return hash(k);
 	}
 	else{
 		if (!backingArray[hash(k)].isNull || backingArray[hash(k)].isDel){
 			return hash(k) % backingArraySize;
+=======
+	unsigned long i = hash(k);
+	while(i <= backingArraySize){
+		if(backingArray[i].k == hash(k)){
+			return i;
+		}else{
+			if(backingArray[i].isNull == true || backingArray[i].isDel == true){
+				return hash(k)%backingArraySize;
+			}
+>>>>>>> 66a10142f5c61d19b1f0403aca0918d1bd7c13f9
 		}
 	}
 }
@@ -112,10 +130,24 @@ unsigned long HashTable<Key, T>::calcIndex(Key k){
 template <class Key, class T>
 void HashTable<Key, T>::add(Key k, T x){
 	if (keyExists(k)){
+<<<<<<< HEAD
 		backingArray[calcIndex(k)].x = x;
 	}
 	else{
 		int index = calcIndex(k);
+=======
+		backingArray[calcIndex(k)] = x;
+	}
+	if (2 * (numItems) > backingArraySize){
+		grow();
+	}
+
+	backingArray[calcIndex(k)].k = k;
+	backingArray[calcIndex(k)].x = x;
+	backingArray[calcIndex(k)].isDel = false;
+	backingArray[calcIndex(k)].isNull = false;
+	numItems++;
+>>>>>>> 66a10142f5c61d19b1f0403aca0918d1bd7c13f9
 
 		if ((numRemoved + numItems) >= backingArraySize){
 			grow();
@@ -135,18 +167,37 @@ void HashTable<Key, T>::add(Key k, T x){
 
 template <class Key, class T>
 void HashTable<Key, T>::remove(Key k){
+<<<<<<< HEAD
 	if (!keyExists(k)){
 		throw std::string("Nothing to remove");
 	}
 	backingArray[calcIndex(k)].isDel = true;
 	numItems--;
+=======
+	if (keyExists(k) == true){
+		backingArray[calcIndex(k)].isNull = false;
+		backingArray[calcIndex(k)].isDel = true;
+		numItems--;
+	}
+>>>>>>> 66a10142f5c61d19b1f0403aca0918d1bd7c13f9
 	numRemoved++;
 }
 
 template <class Key, class T>
 T HashTable<Key, T>::find(Key k){
+<<<<<<< HEAD
 	if (!keyExists(k)){
 		throw std::string("Key does not exist");
+=======
+	T dummy;
+	int i = hash(k);
+	while (backingArray[i].isNull == false){
+		if (backingArray[i].k == k){
+			dummy = backingArray[i];
+			return dummy;
+		}
+		i++;
+>>>>>>> 66a10142f5c61d19b1f0403aca0918d1bd7c13f9
 	}
 
 	return backingArray[calcIndex(k)].x;
@@ -158,7 +209,11 @@ bool HashTable<Key, T>::keyExists(Key k){
 		return false;
 	}
 	return true;
+<<<<<<< HEAD
 }
+=======
+}	
+>>>>>>> 66a10142f5c61d19b1f0403aca0918d1bd7c13f9
 
 template <class Key, class T>
 unsigned long HashTable<Key, T>::size(){

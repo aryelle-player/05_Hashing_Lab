@@ -76,6 +76,7 @@ private:
 public:
 	unsigned long numRemoved; //Number of slots that have been removed but not re-used. Those that have isDel == true
 	unsigned long backingArraySize;
+	unsigned long numPrimes;
 };
 
 
@@ -86,17 +87,12 @@ public:
 
 template <class Key, class T>
 HashTable<Key, T>::HashTable(){
-<<<<<<< HEAD
-	backingArray = new HashRecord;
+	backingArraySize = hashPrimes[numPrimes];
+	backingArray = new HashRecord[backingArraySize];
 	numItems = 0;
 	numRemoved = 0;
-	backingArraySize = 0;
-=======
-	backingArray = new [10];
-	numItems = 0;
-	numRemoved = 0; 
-	backingArraySize = 10;
->>>>>>> 66a10142f5c61d19b1f0403aca0918d1bd7c13f9
+	numPrimes = NUM_HASH_PRIMES;
+
 }
 
 template <class Key, class T>
@@ -106,23 +102,16 @@ HashTable<Key, T>::~HashTable() {
 
 template <class Key, class T>
 unsigned long HashTable<Key, T>::calcIndex(Key k){
-<<<<<<< HEAD
-	if (!backingArray[hash(k)].isDel && backingArray[hash(k)].k == k){
-		return hash(k);
-	}
-	else{
-		if (!backingArray[hash(k)].isNull || backingArray[hash(k)].isDel){
-			return hash(k) % backingArraySize;
-=======
-	unsigned long i = hash(k);
-	while(i <= backingArraySize){
-		if(backingArray[i].k == hash(k)){
-			return i;
-		}else{
-			if(backingArray[i].isNull == true || backingArray[i].isDel == true){
-				return hash(k)%backingArraySize;
+	unsigned long index = hash(k) % backingArraySize;
+
+	while (true){
+		if (!backingArray[index].isDel && backingArray[index].k == k){
+			return index;
+		}
+		else{
+			if (!backingArray[index].isNull){
+				return (index++) % backingArraySize;
 			}
->>>>>>> 66a10142f5c61d19b1f0403aca0918d1bd7c13f9
 		}
 	}
 }
@@ -130,24 +119,11 @@ unsigned long HashTable<Key, T>::calcIndex(Key k){
 template <class Key, class T>
 void HashTable<Key, T>::add(Key k, T x){
 	if (keyExists(k)){
-<<<<<<< HEAD
+
 		backingArray[calcIndex(k)].x = x;
 	}
 	else{
-		int index = calcIndex(k);
-=======
-		backingArray[calcIndex(k)] = x;
-	}
-	if (2 * (numItems) > backingArraySize){
-		grow();
-	}
-
-	backingArray[calcIndex(k)].k = k;
-	backingArray[calcIndex(k)].x = x;
-	backingArray[calcIndex(k)].isDel = false;
-	backingArray[calcIndex(k)].isNull = false;
-	numItems++;
->>>>>>> 66a10142f5c61d19b1f0403aca0918d1bd7c13f9
+		int index = hash(k) % backingArraySize;
 
 		if ((numRemoved + numItems) >= backingArraySize){
 			grow();
@@ -167,40 +143,22 @@ void HashTable<Key, T>::add(Key k, T x){
 
 template <class Key, class T>
 void HashTable<Key, T>::remove(Key k){
-<<<<<<< HEAD
 	if (!keyExists(k)){
 		throw std::string("Nothing to remove");
 	}
+
 	backingArray[calcIndex(k)].isDel = true;
 	numItems--;
-=======
-	if (keyExists(k) == true){
-		backingArray[calcIndex(k)].isNull = false;
-		backingArray[calcIndex(k)].isDel = true;
-		numItems--;
-	}
->>>>>>> 66a10142f5c61d19b1f0403aca0918d1bd7c13f9
 	numRemoved++;
 }
 
 template <class Key, class T>
 T HashTable<Key, T>::find(Key k){
-<<<<<<< HEAD
 	if (!keyExists(k)){
 		throw std::string("Key does not exist");
-=======
-	T dummy;
-	int i = hash(k);
-	while (backingArray[i].isNull == false){
-		if (backingArray[i].k == k){
-			dummy = backingArray[i];
-			return dummy;
-		}
-		i++;
->>>>>>> 66a10142f5c61d19b1f0403aca0918d1bd7c13f9
-	}
 
-	return backingArray[calcIndex(k)].x;
+		return backingArray[calcIndex(k)].x;
+	}
 }
 
 template <class Key, class T>
@@ -208,12 +166,11 @@ bool HashTable<Key, T>::keyExists(Key k){
 	if (calcIndex(k) >= numItems){
 		return false;
 	}
-	return true;
-<<<<<<< HEAD
+	if (calcIndex(k) < backingArraySize){
+		return true;
+	}
+
 }
-=======
-}	
->>>>>>> 66a10142f5c61d19b1f0403aca0918d1bd7c13f9
 
 template <class Key, class T>
 unsigned long HashTable<Key, T>::size(){
@@ -222,14 +179,15 @@ unsigned long HashTable<Key, T>::size(){
 
 template <class Key, class T>
 void HashTable<Key, T>::grow(){
-	backingArraySize *= 2;
-	HashRecord* dummy = new HashRecord[backingArraySize];
+	HashRecord* dummy = new HashRecord[hashPrimes[numPrimes++]];
+	backingArraySize = hashPrimes[numPrimes++];
 
-	for (unsigned int i = 0; i < backingArraySize; i++){
+	for (unsigned int i = 0; i < hashPrimes[numPrimes--]; i++){
 		if (!backingArray[i].isDel && !backingArray[i].isNull){
+
 			int index = hash(backingArray[i].k) % backingArraySize;
 			while (!dummy[index].isNull) {
-				index += 1 % backingArraySize;
+				index = (index+1) % backingArraySize;
 			}
 			dummy[index].isNull = false;
 			dummy[index].isDel = false;
@@ -237,6 +195,7 @@ void HashTable<Key, T>::grow(){
 			dummy[index].x = backingArray[i].x;
 		}
 	}
-
+	delete[] backingArray;
+	backingArray = dummy;
 }
 
